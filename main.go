@@ -2,12 +2,11 @@ package main
 
 import (
 	"fmt"
+
+	"github.com/suinautant/learngo/accounts"
 )
 
-func repeatMe(words ...string) {
-	fmt.Println(words)
-}
-
 func main() {
-	repeatMe("nico", "lynn", "dal", "marl", "flynn")
+	account := accounts.NewAccount("nico")
+	fmt.Println(account)
 }

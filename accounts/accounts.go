@@ -6,7 +6,6 @@ import (
 )
 
 // var errNoMoney = errors.New("Can't withdraw")
-var errNoMoney = errors.New("Can't withdraw")
 
 // Account struct - nico
 type Account struct {
@@ -34,10 +33,26 @@ func (a Account) Balance() int {
 // Withdraw x amount from your account
 func (a *Account) Withdraw(amount int) error {
 	if a.balance < amount {
+		return errors.New("Can't withdraw")
 		// return errors.New("Can't withdraw you are poor")
-		return errNoMoney
+		// return errNoMoney
 	} else {
 		a.balance -= amount
 		return nil
 	}
+}
+
+// ChangeOwner of your account
+func (a *Account) ChangeOwner(newOwner string) {
+	a.owner = newOwner
+}
+
+// Owner of the account
+func (a Account) Owner() string {
+	return a.owner
+}
+
+func (a Account) String() string {
+	// return fmt.Sprintf(a.Owner(), "'s account.\nHas: ", a.Balance())
+	return fmt.Sprint(a.Owner(), "'s account.\nHas: ", a.Balance())
 }

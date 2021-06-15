@@ -1,45 +1,51 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 )
 
-var errRequestFailed = errors.New("ERROR: Request failed")
+type requestResult struct {
+	url    string
+	status string
+	code   int
+}
 
 func main() {
-	var results = make(map[string]string)
+	results := make(map[string]string)
+	codes := make(map[string]int)
+	c := make(chan requestResult)
 	urls := []string{
 		"https://www.airbnb.com/",
 		"https://www.google.com/",
 		"https://www.amazon.com/",
 		"https://www.reddit.com/",
-		"https://www.google.com/",
 		"https://soundcloud.com/",
 		"https://www.facebook.com/",
 		"https://www.instagram.com/",
 		"https://academy.nomadcoders.co/",
 	}
 	for _, url := range urls {
-		result := "OK"
-		err := hitURL(url)
-		if err != nil {
-			result = "FAILED"
-		}
-		results[url] = result
+		go hitURL(url, c)
 	}
-	for url, result := range results {
-		fmt.Println("Checking:", result, "URL:", url)
+	for i := 0; i < len(urls); i++ {
+		result := <-c
+		results[result.url] = result.status
+		codes[result.url] = result.code
+	}
+	for url, status := range results {
+		fmt.Println(strconv.Itoa(codes[url]) + " : " + status + " - " + url)
 	}
 }
 
-func hitURL(url string) error {
-	fmt.Println("Checking:", url)
+func hitURL(url string, c chan<- requestResult) {
 	resp, err := http.Get(url)
-	if err != nil || resp.StatusCode >= 400 {
-		fmt.Println(err, resp.StatusCode)
-		return errRequestFailed
+	status := "OK"
+	code := resp.StatusCode
+	if err != nil || code >= 400 {
+		status = "FAILED"
+		c <- requestResult{url: url, status: status, code: code}
 	}
-	return nil
+	c <- requestResult{url: url, status: status, code: code}
 }

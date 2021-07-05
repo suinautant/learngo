@@ -11,11 +11,13 @@ import (
 var baseURL string = "https://kr.indeed.com/jobs?q=python&limit=50"
 
 func main() {
-	pages := getPages()
+	totalPages := getPages()
+	fmt.Println("total pages  : ", totalPages)
 
 }
 
 func getPages() int {
+	pages := 0
 	// Request the HTML page.
 	res, err := http.Get(baseURL)
 	checkErr(err)
@@ -28,11 +30,12 @@ func getPages() int {
 	doc, err := goquery.NewDocumentFromReader(res.Body)
 	checkErr(err)
 
+	// gather html page find pagination class
 	doc.Find(".pagination").Each(func(i int, s *goquery.Selection) {
-		fmt.Println(s.Html())
+		pages = s.Find("a").Length()
 	})
 
-	return 0
+	return pages
 }
 
 func checkErr(err error) {

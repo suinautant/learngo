@@ -1,9 +1,11 @@
 package main
 
 import (
+	"encoding/csv"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 
@@ -26,10 +28,39 @@ func main() {
 
 	for i := 0; i < totalPages; i++ {
 		extractedJob := getPage(i)
+		// for debug
+		// fmt.Println(extractedJob)
 		jobs = append(jobs, extractedJob...)
 	}
 
-	fmt.Println(jobs)
+	// for debug
+	// fmt.Println(jobs)
+	writeJobs(jobs)
+	fmt.Println("Done, extracted", len(jobs))
+}
+
+func writeJobs(jobs []extractedJob) {
+	file, err := os.Create("jobs.csv")
+	checkErr(err)
+
+	w := csv.NewWriter(file)
+	defer w.Flush()
+
+	headers := []string{"ID", "Title", "Location", "Salary", "Summary"}
+
+	wErr := w.Write(headers)
+	checkErr(wErr)
+
+	// for debug
+	// fmt.Println(jobs)
+	for _, job := range jobs {
+		fmt.Println("job : ", job)
+		jobSlice := []string{"https://kr.indeed.com/viewjob?jk=" + job.id, job.title, job.location, job.salary, job.summary}
+		jwErr := w.Write(jobSlice)
+		checkErr(jwErr)
+		// for debug
+		// fmt.Println(i, " : ", jobSlice)
+	}
 }
 
 func getPage(page int) []extractedJob {
@@ -47,10 +78,18 @@ func getPage(page int) []extractedJob {
 	// Load the HTML document
 	doc, err := goquery.NewDocumentFromReader(res.Body)
 	checkErr(err)
+	// for debug
+	fmt.Println(doc)
 
 	searchCards := doc.Find(".jobsearch-SerpJobCard")
+	// for debug
+	// fmt.Println(searchCards.Html())
 	searchCards.Each(func(i int, card *goquery.Selection) {
+		// for debug
+		// fmt.Println(card)
 		job := extractJob(card)
+		// for debug
+		// fmt.Println(job)
 		jobs = append(jobs, job)
 	})
 
